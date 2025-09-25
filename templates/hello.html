@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
-
-    <title>Hi!</title>
+    <title>Guest List</title>
 </head>
 <body>
-    
-<h1>Hello from Render</h1>
-{% if name %}
-<h2>and hello to {{name}}</h2>
-{% endif %}
+    <h1>Hello from Render</h1>
+
+    {% if name %}
+        <h2>and hello to {{ name }}</h2>
+    {% endif %}
+
+    <h1>Guest List Form</h1>
+
+    <form method="POST" action="/">
+        <label>Name: <input type="text" name="name" required></label><br><br>
+        <label>Message: <input type="text" name="message" required></label><br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Guest List</h2>
+    <ol>
+        {% for guest in guests %}
+            <li><strong>{{ guest.name }}</strong>: {{ guest.message }}</li>
+        {% else %}
+            <li>No guests yet!</li>
+        {% endfor %}
+    </ol>
 </body>
 </html>
