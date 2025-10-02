@@ -1,12 +1,21 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from contextlib import contextmanager
 import os
-import psycopg2
+import json
+from os import environ as env
+from urllib.parse import quote_plus, urlencode
 from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extras import DictCursor
+from authlib.integrations.flask_client import OAuth
+from dotenv import find_dotenv, load_dotenv
 
 pool = None
 
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+    
+    
 def setup_db_pool():
     global pool
     DATABASE_URL = os.environ['DATABASE_URL']
@@ -32,8 +41,52 @@ def get_db_cursor(commit=False):
         finally:
             cur.close()
 app = Flask(__name__)
+app.secret_key = env.get("APP_SECRET_KEY")
 
 setup_db_pool()
+
+oauth = OAuth(app)
+
+oauth.register(
+    "auth0",
+    client_id=env.get("AUTH0_CLIENT_ID"),
+    client_secret=env.get("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
+
+
+@app.route("/login")
+def login():
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
+    )
+
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    token = oauth.auth0.authorize_access_token()
+    session["user"] = token
+    return redirect(url_for("hello"))
+
+
+# 👆 We're continuing from the steps above. Append this to your server.py file.
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(
+        "https://" + env.get("AUTH0_DOMAIN")
+        + "/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": url_for("hello", _external=True),
+                "client_id": env.get("AUTH0_CLIENT_ID"),
+            },
+            quote_via=quote_plus,
+        )
+    )
 
 @app.route('/', methods=["GET", "POST"])
 def guest_list():
@@ -53,5 +106,9 @@ def guest_list():
         guests = cur.fetchall()
 
     return render_template("hello.html", guest_list=guests)
+
+@app.route('/simple', methods=["GET"])
+def simple():
+    return render_template("simple.html")
 
 

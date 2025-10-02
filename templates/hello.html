@@ -9,8 +9,17 @@
     <title>Hi!</title>
 </head>
 <body>
-
 <h1>Hello from Render</h1>
+{% if session %}
+        <h1>Session Exists!</h1>
+        <code>
+        `<pre>
+            {{ session | tojson }}
+        </pre>
+        </code>
+    {% else %}
+        <h1>No Session</h1>
+    {% endif %}
 
     <h1>Guest List Feature</h1>
 

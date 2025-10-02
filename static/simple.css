@@ -1,0 +1,20 @@
+/* Basic styling for visibility */
+.header, .footer {
+    background-color: #f0f0f0;
+    padding: 1em;
+    text-align: center;
+}
+
+.sidebar-left, .sidebar-right {
+    background-color: #e0e0e0;
+    padding: 1em;
+}
+
+.content {
+    background-color: #ffffff;
+    padding: 1em;
+}
+
+.pure-g > div {
+    box-sizing: border-box;
+}
